@@ -36,6 +36,12 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Claude / Ruflo agent config
+.claude/
+.claude-flow/
+.swarm/
+.mcp.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

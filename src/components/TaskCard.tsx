@@ -56,13 +56,13 @@ export function TaskCard({
   const isCritical  = lubricantName?.includes('LGLT 2') || lubricantName?.includes('SKF');
 
   const handleCompletePress = () => {
-    // Si es lubricación y no hay gramaje definido → pedir al usuario
-    if (isLube && !grammage) {
+    // Lubricación siempre requiere registrar gramaje real aplicado
+    if (isLube) {
       setShowGrammage(true);
       return;
     }
     fireConfetti();
-    onComplete(id, grammage);
+    onComplete(id);
   };
 
   const handleGrammageConfirm = () => {

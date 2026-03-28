@@ -12,8 +12,18 @@ export async function downloadRouteForShift(userId: string): Promise<StoredTask[
   try {
     const today = new Date().toISOString().split('T')[0];
 
-    // 1. Intentar traer daily_tasks asignadas para hoy
-    const { data: dailyTasks, error: dailyError } = await supabase
+    // 1. Buscar turno activo en la tabla shifts
+    const { data: activeShiftRaw } = await supabase
+      .from('shifts')
+      .select('id, start_date, end_date')
+      .eq('is_active', true)
+      .limit(1)
+      .maybeSingle();
+
+    const activeShiftId = (activeShiftRaw as { id: string } | null)?.id ?? null;
+
+    // 2. Intentar traer daily_tasks asignadas al turno activo (o a hoy como fallback)
+    let query = supabase
       .from('daily_tasks')
       .select(`
         id,
@@ -36,8 +46,16 @@ export async function downloadRouteForShift(userId: string): Promise<StoredTask[
           )
         )
       `)
-      .eq('assigned_user_id', userId)
-      .eq('scheduled_date', today);
+      .eq('assigned_user_id', userId);
+
+    // Filtrar por shift_id si hay turno activo, si no usar scheduled_date = hoy
+    if (activeShiftId) {
+      query = query.eq('shift_id', activeShiftId);
+    } else {
+      query = query.eq('scheduled_date', today);
+    }
+
+    const { data: dailyTasks, error: dailyError } = await query;
 
     if (!dailyError && dailyTasks && dailyTasks.length > 0) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

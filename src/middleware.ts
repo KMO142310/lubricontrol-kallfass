@@ -23,10 +23,11 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  const path      = request.nextUrl.pathname;
-  const isLogin   = path.startsWith('/login');
-  const isDash    = path.startsWith('/dashboard');
-  const isDevBypass =
+  const path            = request.nextUrl.pathname;
+  const isLogin         = path.startsWith('/login');
+  const isDash          = path.startsWith('/dashboard');
+  const isSupervisorRoute = path.startsWith('/dashboard/supervisor');
+  const isDevBypass     =
     process.env.NODE_ENV === 'development' &&
     request.nextUrl.searchParams.get('bypass') === 'true';
 
@@ -35,6 +36,21 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
+  }
+
+  // Proteger /dashboard/supervisor: solo supervisor y admin
+  if (isSupervisorRoute && user && !isDevBypass) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile || (profile.role !== 'supervisor' && profile.role !== 'admin')) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/dashboard';
+      return NextResponse.redirect(url);
+    }
   }
 
   // Con sesión en login → redirigir a dashboard

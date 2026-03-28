@@ -36,9 +36,9 @@ export function MachineDetailSheet({ machine, points, onClose }: MachineDetailSh
           <div className="flex gap-4 mt-6">
             <div className="bg-white/5 rounded-2xl p-4 flex-1 border border-white/5 group relative overflow-hidden">
               <span className="text-[0.6rem] font-bold text-slate-500 uppercase block mb-1">Doc. Ref</span>
-              <span className="text-sm font-bold text-slate-200">{machine.doc_reference}</span>
-              {machine.doc_reference?.endsWith('.pdf') && (
-                <button 
+              <span className="text-sm font-bold text-slate-200">{machine.doc_reference || machine.model_name}</span>
+              {machine.image_url && (
+                <button
                   onClick={() => setShowBlueprint(true)}
                   className="absolute inset-0 bg-indigo-600/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity translate-y-full group-hover:translate-y-0 duration-300 border-none cursor-pointer w-full h-full"
                 >
@@ -96,11 +96,11 @@ export function MachineDetailSheet({ machine, points, onClose }: MachineDetailSh
         </div>
       </div>
 
-      <BlueprintOverlay 
+      <BlueprintOverlay
         isOpen={showBlueprint}
         onClose={() => setShowBlueprint(false)}
-        pdfUrl={machine.doc_reference || ''}
-        title={`${machine.position_code} - ${machine.model_name}`}
+        pdfUrl={machine.image_url || ''}
+        title={`${machine.position_code} — ${machine.model_name}`}
       />
 
       <style jsx>{`
